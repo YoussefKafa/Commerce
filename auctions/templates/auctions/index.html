@@ -9,9 +9,10 @@
         <li>title : {{listing.title}} <br> 
             description: {{listing.description}}<br>
             current price: {{listing.startingBid}} <br>
-            image : {{lisitng.image}} <br>
+            image :<br> <img src="{{listing.image.url}}" alt="Bid pic" width="250" height="250"><br>
             <a href="listingMainPage/{{listing.id}}">View details</a>
         </li>
+        <hr style="border: 2px solid rgb(88, 88, 88); border-radius: 5px;">
         {% empty %}
         <h2>There is no listings available.</h2>
         {% endfor %}
