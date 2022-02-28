@@ -1,0 +1,11 @@
+{% extends "auctions/layout.html" %}
+{% load static %}
+{% block body %}
+  <h1>Listing : {{lis.title}}</h1>
+  <ul>
+      <li>Category :<br> {{lis.category}}</li>
+      <li>Description :<br> {{lis.description}}</li>
+      <li>currentPrice:<br> {{lis.startingBid}}</li>
+      <li>listedBy:<br> {{user.username}}</li>
+      <li>image: <br> <img src="{{lis.image.url}}" alt="Bid pic" width="250" height="250"></li> </ul>
+{% endblock %}

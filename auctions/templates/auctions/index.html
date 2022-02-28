@@ -1,0 +1,23 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <a href="{% url 'newListing' %}" >create new listing</a>
+    <h2>Active Listings</h2>
+    {% if user.is_authenticated %}
+    <ul>
+        {% for listing in listings %}
+        <li>title : {{listing.title}} <br> 
+            description: {{listing.description}}<br>
+            current price: {{listing.startingBid}} <br>
+            image : {{lisitng.image}} <br>
+            <a href="listingMainPage/{{listing.id}}">View details</a>
+        </li>
+        {% empty %}
+        <h2>There is no listings available.</h2>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <h1>Please login to see all the listings.</h1>
+    {% endif %}
+  
+{% endblock %}

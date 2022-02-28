@@ -1,0 +1,33 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+<h1>Create a new listing: </h1>
+<form action="{% url 'saveListing' %}" method="post" enctype='multipart/form-data'>
+  {% csrf_token %}
+    <label for="title">Title:</label>
+    <br>
+    <input type="text" name="title" value="Your Title" onfocus="this.value=''"/>
+    <br>
+    <label for="category">Category:</label>
+    <br>
+    <input type="text" name="category" value="what category?" onfocus="this.value=''"/>
+    <br>
+    <label for="description">Description: </label>
+    <br>
+    <textarea  name="description" onfocus="this.value=''" style="width:700px; height:200px">
+      write your description here..
+    </textarea>
+    <br>
+    <label for="startingBid">Starting Bid: </label>
+    <br>
+    <input type="number" name="startingBid" step="any">
+    <br>
+    <label for="image">You can select image file:</label>
+    <br>
+    <input type="file" name="image" accept="image/*">
+    <hr>
+    <input type="submit" name="submit" value="Submit" style="color:white; background-color: #04AA6D;">
+</form>
+
+{% endblock %}
