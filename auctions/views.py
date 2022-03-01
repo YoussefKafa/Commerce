@@ -6,10 +6,24 @@ from django.urls import reverse
 from . import utils
 from .models import *
 from .forms import ListingForm
-
+from django.contrib.auth.decorators import login_required
 
 def index(request):
-    listings = Listing.objects.all()
+    if request.user.is_authenticated:
+        listings = Listing.objects.all()
+        #fetch user watchlist
+        watchlist=WatchList.objects.filter(user=request.user)
+        watched=[]
+        for item in watchlist:
+           exist= item.user==request.user
+           watched.append(item.listing)
+        for item in listings:
+            if (item in watched):
+                item.watched=True
+            else:
+                item.watched=False
+    else:
+        listings=[]
     return render(request, "auctions/index.html"  , {"listings":listings})
 
 
@@ -32,7 +46,7 @@ def login_view(request):
     else:
         return render(request, "auctions/login.html")
 
-
+@login_required
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
@@ -87,3 +101,24 @@ def listingMainPage(request, listingId):
 
 def submitted(request):
     return render(request, "auctions/submitted.html")
+
+
+def addToWatchList(request, listingId):
+    #add the listing to user watchlist
+    watchListRecord=WatchList()
+    lis =Listing.objects.get(id=listingId)
+    watchListRecord.listing=lis
+    watchListRecord.user=request.user
+    watchListRecord.save()
+    return HttpResponseRedirect (reverse("index"))
+
+
+def removeFromWatchList(request, listingId):
+    lis =Listing.objects.get(id=listingId)
+    #add the listing to user watchlist
+    WatchList.objects.filter(listing=lis, user=request.user).delete()
+    return HttpResponseRedirect (reverse("index"))
+
+
+def bid(request):
+    return HttpResponseRedirect (reverse("index"))

@@ -7,10 +7,28 @@
     <ul>
         {% for listing in listings %}
         <li>title : {{listing.title}} <br> 
-            description: {{listing.description}}<br>
-            current price: {{listing.startingBid}} <br>
-            image :<br> <img src="{{listing.image.url}}" alt="Bid pic" width="250" height="250"><br>
+            Description : {{listing.description}}<br>
+            Starting Bid : {{listing.startingBid}} <br>
+            Bid History : {{listing.bidHistory}} <br>
+            Last Bid : {{listing.lastBid}} <br>
+            Image :<br> <img src="{{listing.image.url}}" alt="Bid pic" width="250" height="250"><br>
             <a href="listingMainPage/{{listing.id}}">View details</a>
+            <br>
+            {% if listing.watched %}
+            <a href="removeFromWatchList/{{listing.id}}" style="color:red">
+                Remove from WatchList.
+               </a>
+        {% else %}
+        <a href="addToWatchList/{{listing.id}}" style="color:rgb(139, 2, 128)">
+            Add to WatchList.
+           </a>
+        {% endif %}
+        <br>
+        <form action="{% url 'bid' %}" method="post" enctype='multipart/form-data'>
+            {% csrf_token %}
+            <input type="text" name="bid" value="Enter a number to Bid!" onfocus="this.value=''">
+            <input type="submit" name="submit" value="Bid!" style="color:white; background-color: #04AA6D;">
+        </form>
         </li>
         <hr style="border: 2px solid rgb(88, 88, 88); border-radius: 5px;">
         {% empty %}
