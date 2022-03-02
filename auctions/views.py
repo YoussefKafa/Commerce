@@ -6,10 +6,16 @@ from django.urls import reverse
 from . import utils
 from .models import *
 from .forms import ListingForm
+from datetime import datetime
 from django.contrib.auth.decorators import login_required
 
-def index(request):
+def index(request, *args, **kwargs):
+    bidError=False
     if request.user.is_authenticated:
+        if 'bidError' in request.session:
+            bidError=True
+            del request.session['bidError']
+            request.session.modified = True
         listings = Listing.objects.all()
         #fetch user watchlist
         watchlist=WatchList.objects.filter(user=request.user)
@@ -17,14 +23,24 @@ def index(request):
         for item in watchlist:
            exist= item.user==request.user
            watched.append(item.listing)
+
+        
         for item in listings:
             if (item in watched):
                 item.watched=True
             else:
                 item.watched=False
+            listingBids=Bid.objects.filter(listing=item)
+            bidHistory=[]
+            for n in listingBids:
+                bidHistory.append(n.amount)
+            item.bidHistory=bidHistory
+            item.lastBid=max(bidHistory)
     else:
         listings=[]
-    return render(request, "auctions/index.html"  , {"listings":listings})
+    for item in listings:
+        print(item.lastBid)
+    return render(request, "auctions/index.html"  , {"listings":listings, "bidError":bidError})
 
 
 def login_view(request):
@@ -119,6 +135,25 @@ def removeFromWatchList(request, listingId):
     WatchList.objects.filter(listing=lis, user=request.user).delete()
     return HttpResponseRedirect (reverse("index"))
 
-
 def bid(request):
+    listingId=int(request.POST.get('listing'))
+    bid=Bid()
+    bid.amount=request.POST.get('amount')
+    bid.user=request.user
+    listing=Listing.objects.get(pk=listingId)
+    bid.listing=listing
+    bid.date=datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
+    if(int(bid.amount) <= listing.startingBid):
+        request.session['bidError']=True
+        return HttpResponseRedirect (reverse("index"))
+    #fetch last listing bids
+    listingBids=Bid.objects.filter(listing=listing)
+    bidHistory=[]
+    for item in listingBids:
+        bidHistory.append(item.amount)
+    for n in bidHistory:
+        if( int(bid.amount) <= n):
+            request.session['bidError']=True  
+            return HttpResponseRedirect (reverse("index"))
+    bid.save()
     return HttpResponseRedirect (reverse("index"))

@@ -4,13 +4,19 @@
     <a href="{% url 'newListing' %}" >create new listing</a>
     <h2>Active Listings</h2>
     {% if user.is_authenticated %}
+    {% if bidError %}
+    <h1 style="color:red">Please notice that : </h1>
+    <h3 style="color:rgb(245, 94, 131)">
+        The bid must be at least as large as the starting bid, and must be greater than any other bids that have been placed
+    </h3>
+    {% endif %}
     <ul>
         {% for listing in listings %}
         <li>title : {{listing.title}} <br> 
             Description : {{listing.description}}<br>
             Starting Bid : {{listing.startingBid}} <br>
             Bid History : {{listing.bidHistory}} <br>
-            Last Bid : {{listing.lastBid}} <br>
+            Highest Bid : {{listing.lastBid}} <br>
             Image :<br> <img src="{{listing.image.url}}" alt="Bid pic" width="250" height="250"><br>
             <a href="listingMainPage/{{listing.id}}">View details</a>
             <br>
@@ -26,7 +32,8 @@
         <br>
         <form action="{% url 'bid' %}" method="post" enctype='multipart/form-data'>
             {% csrf_token %}
-            <input type="text" name="bid" value="Enter a number to Bid!" onfocus="this.value=''">
+            <input type="text" name="listing" value="{{listing.id}}" hidden="true">
+            <input type="number" name="amount" value="Enter a number to Bid!" onfocus="this.value=''">
             <input type="submit" name="submit" value="Bid!" style="color:white; background-color: #04AA6D;">
         </form>
         </li>

@@ -17,7 +17,7 @@ class Bid(models.Model):
     amount=models.IntegerField()
     user=models.ForeignKey(to=User, on_delete=models.CASCADE, null=True)
     listing=models.ForeignKey(to=Listing, on_delete=models.CASCADE, null=True)
-    date = models.DateTimeField(auto_now_add=True, blank=True)
+    date = models.TextField()
 
 class Comment(models.Model):
     commentString=models.TextField()
