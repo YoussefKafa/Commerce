@@ -6,11 +6,12 @@ from django.urls import reverse
 from . import utils
 from .models import *
 from .forms import ListingForm
-from datetime import datetime
+import datetime
 from django.contrib.auth.decorators import login_required
-
+from django.db.models import Max
 def index(request, *args, **kwargs):
     bidError=False
+    owner=False
     if request.user.is_authenticated:
         if 'bidError' in request.session:
             bidError=True
@@ -23,8 +24,6 @@ def index(request, *args, **kwargs):
         for item in watchlist:
            exist= item.user==request.user
            watched.append(item.listing)
-
-        
         for item in listings:
             if (item in watched):
                 item.watched=True
@@ -32,15 +31,16 @@ def index(request, *args, **kwargs):
                 item.watched=False
             listingBids=Bid.objects.filter(listing=item)
             bidHistory=[]
+            if ( item.user == request.user ):
+                owner=True
             for n in listingBids:
                 bidHistory.append(n.amount)
             item.bidHistory=bidHistory
+            print(item.bidHistory)
             item.lastBid=max(bidHistory)
     else:
         listings=[]
-    for item in listings:
-        print(item.lastBid)
-    return render(request, "auctions/index.html"  , {"listings":listings, "bidError":bidError})
+    return render(request, "auctions/index.html"  , {"listings":listings, "bidError":bidError, "owner":owner})
 
 
 def login_view(request):
@@ -102,7 +102,6 @@ def saveListing(request, *args, **kwargs):
         form = ListingForm(request.POST, request.FILES)
         if form.is_valid():
             lisSaved=form.save()
-            print(lisSaved.id)
             lisData=Listing.objects.filter(pk=lisSaved.id)
             lisSaved.user=request.user
             lisSaved.save()
@@ -112,8 +111,15 @@ def saveListing(request, *args, **kwargs):
 
 def listingMainPage(request, listingId):
     lis =Listing.objects.get(id=listingId)
+    listingBids=Bid.objects.filter(listing=lis)
+    listingComments=Comment.objects.filter(listing=lis)
+    bidHistory=[]
+    for n in listingBids:
+      bidHistory.append(n.amount)
+      lis.bidHistory=bidHistory
+      lis.lastBid=max(bidHistory)
     user=utils.get_user(lis.user_id)
-    return render(request, "auctions/listingMainPage.html", {"lis":lis, "user":user})
+    return render(request, "auctions/listingMainPage.html", {"lis":lis, "user":user, "comments":listingComments})
 
 def submitted(request):
     return render(request, "auctions/submitted.html")
@@ -157,3 +163,37 @@ def bid(request):
             return HttpResponseRedirect (reverse("index"))
     bid.save()
     return HttpResponseRedirect (reverse("index"))
+
+
+def closeListing(request, listingId):
+    #close the listing 
+    listing= Listing.objects.get(pk=listingId)
+    listing.closed= True
+    listing.closedDate= datetime.datetime.now()
+    #define the winner
+    listingBids=Bid.objects.filter(listing=listing)
+    maxBidAmount= Bid.objects.aggregate(Max('amount'))
+    maxBid= Bid.objects.filter(amount=maxBidAmount['amount__max'])
+    winnerBid= maxBid.first()
+    listing.winner=winnerBid.user
+    listing.save()
+    return HttpResponseRedirect (reverse("index"))
+
+def saveComment(request):
+    listing= Listing.objects.get(pk=int(request.POST.get('listing')))
+    comment=Comment()
+    comment.commentString=request.POST.get('comment')
+    comment.user=request.user
+    comment.listing=listing
+    comment.date=datetime.datetime.now()
+    comment.save()
+    lis =Listing.objects.get(id=int(request.POST.get('listing')))
+    listingBids=Bid.objects.filter(listing=lis)
+    listingComments=Comment.objects.filter(listing=lis)
+    bidHistory=[]
+    for n in listingBids:
+      bidHistory.append(n.amount)
+      lis.bidHistory=bidHistory
+      lis.lastBid=max(bidHistory)
+    user=utils.get_user(lis.user_id)
+    return render(request, "auctions/listingMainPage.html", {"lis":lis, "user":user, "comments":listingComments})

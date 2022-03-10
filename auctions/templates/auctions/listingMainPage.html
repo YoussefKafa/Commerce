@@ -5,7 +5,43 @@
   <ul>
       <li>Category :<br> {{lis.category}}</li>
       <li>Description :<br> {{lis.description}}</li>
-      <li>currentPrice:<br> {{lis.startingBid}}</li>
+      <li>starting Bid:<br> {{lis.startingBid}}</li>
       <li>listedBy:<br> {{user.username}}</li>
-      <li>image: <br> <img src="{{lis.image.url}}" alt="Bid pic" width="250" height="250"></li> </ul>
+      <li> Bid History :<br> {{lis.bidHistory}} <br></li>
+      <li> Highest Bid :<br> {{lis.lastBid}} <br></li>
+      <li>image: <br> <img src="{{lis.image.url}}" alt="Bid pic" width="250" height="250"></li>
+      {% if lis.closed %}
+      <li style="color:green">Winner: <br> {{ lis.winner}} </li>
+      <li style="color:red"> Closed </li>
+      {% endif %}
+     </ul>
+     <div>
+       <!--  " -->
+      <form action="{% url 'saveComment' %}" method="post" enctype='multipart/form-data'>
+        {% csrf_token %}
+          <label for="comment">Add a Comment :</label>
+          <br>
+          <input type="text" name="listing" value="{{lis.id}}" hidden="true">
+          <textarea  name="comment" onfocus="this.value=''" style="width:700px; height:75px">
+            write your comment here..
+          </textarea>
+          <br>
+          <input type="submit" name="submit" value="comment" style="color:rgb(255, 255, 255); background-color: #3d57ec;">
+      </form>
+       <h1>Comments : </h1>
+       <ul>
+        {% for comment in comments %}
+         <li style=" list-style-position:inside;
+         border: 1px solid rgb(155, 155, 155);">
+          <b>by:</b> {{comment.user}}<br>
+          <b>comment:   </b> {{comment.commentString}}<br>
+           <b>date:    </b> {{comment.date}}
+         </li>
+         <br>
+         {% empty %}
+         <h2>There is no comments available.</h2>
+         {% endfor %}
+       </ul>
+     </div>
+      
 {% endblock %}

@@ -17,9 +17,16 @@
             Starting Bid : {{listing.startingBid}} <br>
             Bid History : {{listing.bidHistory}} <br>
             Highest Bid : {{listing.lastBid}} <br>
+            {% if listing.closed %}
+            Winner : {{listing.winner}} <br>
+            {% endif %}
             Image :<br> <img src="{{listing.image.url}}" alt="Bid pic" width="250" height="250"><br>
             <a href="listingMainPage/{{listing.id}}">View details</a>
             <br>
+            {% if listing.closed %}
+            
+            <h1 style="color:red">Closed</h1>
+            {% else %}
             {% if listing.watched %}
             <a href="removeFromWatchList/{{listing.id}}" style="color:red">
                 Remove from WatchList.
@@ -36,8 +43,15 @@
             <input type="number" name="amount" value="Enter a number to Bid!" onfocus="this.value=''">
             <input type="submit" name="submit" value="Bid!" style="color:white; background-color: #04AA6D;">
         </form>
+        {% if owner %}
+        <a href="close/{{listing.id}}" style="color:red">
+            Close.
+           </a>
+        {% else %}
+        {% endif %}
         </li>
         <hr style="border: 2px solid rgb(88, 88, 88); border-radius: 5px;">
+        {% endif %}
         {% empty %}
         <h2>There is no listings available.</h2>
         {% endfor %}
