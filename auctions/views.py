@@ -6,7 +6,8 @@ from django.urls import reverse
 from . import utils
 from .models import *
 from .forms import ListingForm
-import datetime
+from datetime import datetime
+import datetime as dt
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
 def index(request, *args, **kwargs):
@@ -36,11 +37,11 @@ def index(request, *args, **kwargs):
             for n in listingBids:
                 bidHistory.append(n.amount)
             item.bidHistory=bidHistory
-            print(item.bidHistory)
-            item.lastBid=max(bidHistory)
+            if(len(bidHistory) != 0):
+                item.lastBid=max(bidHistory)
     else:
         listings=[]
-    return render(request, "auctions/index.html"  , {"listings":listings, "bidError":bidError, "owner":owner})
+    return render(request, "auctions/index.html"  , {"listings":listings, "bidError":bidError, "owner":owner, "current_user":request.user.id})
 
 
 def login_view(request):
@@ -117,9 +118,10 @@ def listingMainPage(request, listingId):
     for n in listingBids:
       bidHistory.append(n.amount)
       lis.bidHistory=bidHistory
-      lis.lastBid=max(bidHistory)
+      if(len(bidHistory) != 0):
+          lis.lastBid=max(bidHistory)
     user=utils.get_user(lis.user_id)
-    return render(request, "auctions/listingMainPage.html", {"lis":lis, "user":user, "comments":listingComments})
+    return render(request, "auctions/listingMainPage.html", {"lis":lis, "Cuser":request.user, "comments":listingComments})
 
 def submitted(request):
     return render(request, "auctions/submitted.html")
@@ -169,7 +171,7 @@ def closeListing(request, listingId):
     #close the listing 
     listing= Listing.objects.get(pk=listingId)
     listing.closed= True
-    listing.closedDate= datetime.datetime.now()
+    listing.closedDate= dt.datetime.now()
     #define the winner
     listingBids=Bid.objects.filter(listing=listing)
     maxBidAmount= Bid.objects.aggregate(Max('amount'))
@@ -185,7 +187,7 @@ def saveComment(request):
     comment.commentString=request.POST.get('comment')
     comment.user=request.user
     comment.listing=listing
-    comment.date=datetime.datetime.now()
+    comment.date=dt.datetime.now()
     comment.save()
     lis =Listing.objects.get(id=int(request.POST.get('listing')))
     listingBids=Bid.objects.filter(listing=lis)
@@ -196,4 +198,4 @@ def saveComment(request):
       lis.bidHistory=bidHistory
       lis.lastBid=max(bidHistory)
     user=utils.get_user(lis.user_id)
-    return render(request, "auctions/listingMainPage.html", {"lis":lis, "user":user, "comments":listingComments})
+    return render(request, "auctions/listingMainPage.html", {"lis":lis, "Cuser":user, "comments":listingComments})

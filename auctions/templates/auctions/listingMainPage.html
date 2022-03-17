@@ -6,12 +6,22 @@
       <li>Category :<br> {{lis.category}}</li>
       <li>Description :<br> {{lis.description}}</li>
       <li>starting Bid:<br> {{lis.startingBid}}</li>
-      <li>listedBy:<br> {{user.username}}</li>
+      <li>listedBy:<br> {{Cuser.username}}</li>
       <li> Bid History :<br> {{lis.bidHistory}} <br></li>
       <li> Highest Bid :<br> {{lis.lastBid}} <br></li>
-      <li>image: <br> <img src="{{lis.image.url}}" alt="Bid pic" width="250" height="250"></li>
+
+      <li>image: <br>
+        {% if lis.image %}
+         <img src="{{lis.image.url}}" alt="Bid pic" width="250" height="250"></li>
+         {% else %}
+            no image
+        {%endif %}
       {% if lis.closed %}
       <li style="color:green">Winner: <br> {{ lis.winner}} </li>
+      {% if lis.winner.id == Cuser.id %}
+      <h1 style="color:green">You are the winner!</h1>
+      {% endif %}
+           <br>
       <li style="color:red"> Closed </li>
       {% endif %}
      </ul>

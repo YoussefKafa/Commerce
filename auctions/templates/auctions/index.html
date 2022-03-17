@@ -20,11 +20,20 @@
             {% if listing.closed %}
             Winner : {{listing.winner}} <br>
             {% endif %}
-            Image :<br> <img src="{{listing.image.url}}" alt="Bid pic" width="250" height="250"><br>
+            Image :<br> 
+        {% if listing.image %}
+            <img src="{{listing.image.url}}" alt="Bid pic" width="250" height="250">
+        {% else %}
+            no image
+        {%endif %}
+            <br>
             <a href="listingMainPage/{{listing.id}}">View details</a>
             <br>
+            {% if listing.winner.id == current_user%}
+            <h1 style="color:green">You are the winner!</h1>
+            {% endif %}
+            <br>
             {% if listing.closed %}
-            
             <h1 style="color:red">Closed</h1>
             {% else %}
             {% if listing.watched %}
