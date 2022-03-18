@@ -199,3 +199,12 @@ def saveComment(request):
       lis.lastBid=max(bidHistory)
     user=utils.get_user(lis.user_id)
     return render(request, "auctions/listingMainPage.html", {"lis":lis, "Cuser":user, "comments":listingComments})
+
+
+def watchList(request):
+    watchList=WatchList.objects.filter(user=request.user.id)
+    listings=[]
+    for obj in watchList:
+        listing=Listing.objects.get(pk=obj.listing.id)
+        listings.append(listing)
+    return render(request, "auctions/watchList.html", {"listings":listings})

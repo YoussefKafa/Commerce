@@ -16,6 +16,7 @@ urlpatterns = [
     path("saveComment",views.saveComment,name="saveComment"),
     path("removeFromWatchList/<str:listingId>", views.removeFromWatchList, name="removeFromWatchList"),
     path("bid", views.bid, name="bid"),
+    path("watchList", views.watchList, name="watchList"),
     path("close/<str:listingId>", views.closeListing, name="closeListing")
 ]
 
