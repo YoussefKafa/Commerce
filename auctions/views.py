@@ -208,3 +208,42 @@ def watchList(request):
         listing=Listing.objects.get(pk=obj.listing.id)
         listings.append(listing)
     return render(request, "auctions/watchList.html", {"listings":listings})
+
+
+def categories(request):
+   activeListings=Listing.objects.filter(closed=False)
+   cats=[]
+   for listing in activeListings:
+       if (listing.category not in cats):
+           cats.append(listing.category)
+   print(cats)
+   return render(request, "auctions/categories.html", {"cats":cats})
+
+def byCategory(request,category):
+    bidError=False
+    owner=False
+    if request.user.is_authenticated:
+        listings = Listing.objects.filter(category=category)
+        #fetch user watchlist
+        watchlist=WatchList.objects.filter(user=request.user)
+        watched=[]
+        for item in watchlist:
+           exist= item.user==request.user
+           watched.append(item.listing)
+        for item in listings:
+            if (item in watched):
+                item.watched=True
+            else:
+                item.watched=False
+            listingBids=Bid.objects.filter(listing=item)
+            bidHistory=[]
+            if ( item.user == request.user ):
+                owner=True
+            for n in listingBids:
+                bidHistory.append(n.amount)
+            item.bidHistory=bidHistory
+            if(len(bidHistory) != 0):
+                item.lastBid=max(bidHistory)
+    else:
+        listings=[]
+    return render(request, "auctions/index.html"  , {"listings":listings, "bidError":bidError, "owner":owner, "current_user":request.user.id})
