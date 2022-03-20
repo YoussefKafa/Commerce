@@ -106,7 +106,7 @@ def saveListing(request, *args, **kwargs):
             lisData=Listing.objects.filter(pk=lisSaved.id)
             lisSaved.user=request.user
             lisSaved.save()
-            return HttpResponseRedirect ('submitted')
+            return HttpResponseRedirect(reverse("index"))
         else:
             return HttpResponseRedirect ('newListing')
 
