@@ -12,14 +12,14 @@ urlpatterns = [
     path("newListing",views.newListing, name="newListing"),
     path("saveListing",views.saveListing,name="saveListing"),
     path("listingMainPage/<str:listingId>", views.listingMainPage,name="listingMainPage"),
-    path("addToWatchList/<str:listingId>", views.addToWatchList, name="addToWatchList"),
+    path("listingMainPage/addToWatchList/<str:listingId>", views.addToWatchList, name="addToWatchList"),
+    path("listingMainPage/removeFromWatchList/<str:listingId>", views.removeFromWatchList, name="removeFromWatchList"),
     path("saveComment",views.saveComment,name="saveComment"),
-    path("removeFromWatchList/<str:listingId>", views.removeFromWatchList, name="removeFromWatchList"),
     path("bid", views.bid, name="bid"),
     path("watchList", views.watchList, name="watchList"),
     path("categories", views.categories, name="categories"),
     path("byCategory/<str:category>", views.byCategory, name="byCategory"),
-    path("close/<str:listingId>", views.closeListing, name="closeListing")
+    path("listingMainPage/close/<str:listingId>", views.closeListing, name="closeListing")
 ]
 
 urlpatterns += staticfiles_urlpatterns()

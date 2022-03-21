@@ -11,37 +11,11 @@ import datetime as dt
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
 def index(request, *args, **kwargs):
-    bidError=False
-    owner=False
     if request.user.is_authenticated:
-        if 'bidError' in request.session:
-            bidError=True
-            del request.session['bidError']
-            request.session.modified = True
-        listings = Listing.objects.all()
-        #fetch user watchlist
-        watchlist=WatchList.objects.filter(user=request.user)
-        watched=[]
-        for item in watchlist:
-           exist= item.user==request.user
-           watched.append(item.listing)
-        for item in listings:
-            if (item in watched):
-                item.watched=True
-            else:
-                item.watched=False
-            listingBids=Bid.objects.filter(listing=item)
-            bidHistory=[]
-            if ( item.user == request.user ):
-                owner=True
-            for n in listingBids:
-                bidHistory.append(n.amount)
-            item.bidHistory=bidHistory
-            if(len(bidHistory) != 0):
-                item.lastBid=max(bidHistory)
+            listings = Listing.objects.all()
     else:
         listings=[]
-    return render(request, "auctions/index.html"  , {"listings":listings, "bidError":bidError, "owner":owner, "current_user":request.user.id})
+    return render(request, "auctions/index.html"  , {"listings":listings, "current_user":request.user.id})
 
 
 def login_view(request):
@@ -111,17 +85,12 @@ def saveListing(request, *args, **kwargs):
             return HttpResponseRedirect ('newListing')
 
 def listingMainPage(request, listingId):
-    lis =Listing.objects.get(id=listingId)
-    listingBids=Bid.objects.filter(listing=lis)
-    listingComments=Comment.objects.filter(listing=lis)
-    bidHistory=[]
-    for n in listingBids:
-      bidHistory.append(n.amount)
-      lis.bidHistory=bidHistory
-      if(len(bidHistory) != 0):
-          lis.lastBid=max(bidHistory)
-    user=utils.get_user(lis.user_id)
-    return render(request, "auctions/listingMainPage.html", {"lis":lis, "Cuser":request.user, "comments":listingComments})
+    x=getListingMainPage(request,listingId)
+    owner=False
+    lis=Listing.objects.get(pk=listingId)
+    if(lis.user == request.user):
+        owner=True
+    return render(request, "auctions/listingMainPage.html", {"owner":owner,"watched":x["watched"],"lis":x["lis"], "Cuser":x["Cuser"], "comments":x["comments"]})
 
 def submitted(request):
     return render(request, "auctions/submitted.html")
@@ -134,26 +103,30 @@ def addToWatchList(request, listingId):
     watchListRecord.listing=lis
     watchListRecord.user=request.user
     watchListRecord.save()
-    return HttpResponseRedirect (reverse("index"))
+    x=getListingMainPage(request,listingId)
+    return reverse(request, "auctions/listingMainPage.html", {"watched":x["watched"],"lis":x["lis"], "Cuser":x["Cuser"], "comments":x["comments"]})
 
 
 def removeFromWatchList(request, listingId):
     lis =Listing.objects.get(id=listingId)
     #add the listing to user watchlist
     WatchList.objects.filter(listing=lis, user=request.user).delete()
-    return HttpResponseRedirect (reverse("index"))
+    x=getListingMainPage(request,listingId)
+    return render(request, "auctions/listingMainPage.html", {"watched":x["watched"],"lis":x["lis"], "Cuser":x["Cuser"], "comments":x["comments"]})
 
 def bid(request):
-    listingId=int(request.POST.get('listing'))
+    bidError=False
+    listingId=int(request.POST.get('lis'))
     bid=Bid()
     bid.amount=request.POST.get('amount')
     bid.user=request.user
     listing=Listing.objects.get(pk=listingId)
+    listingComments=Comment.objects.filter(listing=listing)
     bid.listing=listing
     bid.date=datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
     if(int(bid.amount) <= listing.startingBid):
-        request.session['bidError']=True
-        return HttpResponseRedirect (reverse("index"))
+        bidError=True
+        return render(request, "auctions/listingMainPage.html", {"lis":listing,"bidError":bidError, "Cuser":request.user, "comments":listingComments})
     #fetch last listing bids
     listingBids=Bid.objects.filter(listing=listing)
     bidHistory=[]
@@ -162,10 +135,20 @@ def bid(request):
     for n in bidHistory:
         if( int(bid.amount) <= n):
             request.session['bidError']=True  
-            return HttpResponseRedirect (reverse("index"))
+            bidError=True
+            return render(request, "auctions/listingMainPage.html", {"lis":listing,"bidError":bidError, "Cuser":request.user, "comments":listingComments})
     bid.save()
-    return HttpResponseRedirect (reverse("index"))
-
+    lis =Listing.objects.get(id=listingId)
+    listingBids=Bid.objects.filter(listing=lis)
+    listingComments=Comment.objects.filter(listing=lis)
+    bidHistory=[]
+    for n in listingBids:
+      bidHistory.append(n.amount)
+      lis.bidHistory=bidHistory
+      if(len(bidHistory) != 0):
+          lis.lastBid=max(bidHistory)
+    user=utils.get_user(lis.user_id)
+    return render(request, "auctions/listingMainPage.html", {"lis":lis, "Cuser":request.user, "comments":listingComments})
 
 def closeListing(request, listingId):
     #close the listing 
@@ -179,7 +162,9 @@ def closeListing(request, listingId):
     winnerBid= maxBid.first()
     listing.winner=winnerBid.user
     listing.save()
-    return HttpResponseRedirect (reverse("index"))
+    x=getListingMainPage(request,listingId)
+    lis=Listing.objects.get(pk=listingId)
+    return render(request, "auctions/listingMainPage.html", {"watched":x["watched"],"lis":x["lis"], "Cuser":x["Cuser"], "comments":x["comments"]})
 
 def saveComment(request):
     listing= Listing.objects.get(pk=int(request.POST.get('listing')))
@@ -247,3 +232,29 @@ def byCategory(request,category):
     else:
         listings=[]
     return render(request, "auctions/index.html"  , {"listings":listings, "bidError":bidError, "owner":owner, "current_user":request.user.id})
+
+
+
+
+def isWatched(user, listing):
+    watchlist=WatchList.objects.filter(user=user)
+    for item in watchlist:
+        if(item.listing==listing):
+            print("watched")
+            return True
+    print("not watched")
+    return False
+
+def getListingMainPage(request,listingId):
+    lis =Listing.objects.get(id=listingId)
+    listingBids=Bid.objects.filter(listing=lis)
+    listingComments=Comment.objects.filter(listing=lis)
+    bidHistory=[]
+    for n in listingBids:
+      bidHistory.append(n.amount)
+      lis.bidHistory=bidHistory
+      if(len(bidHistory) != 0):
+          lis.lastBid=max(bidHistory)
+    user=utils.get_user(lis.user_id)
+    watched=isWatched(request.user, lis)
+    return  {"watched":watched,"lis":lis, "Cuser":request.user, "comments":listingComments}

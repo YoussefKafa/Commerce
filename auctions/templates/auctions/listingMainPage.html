@@ -1,6 +1,12 @@
 {% extends "auctions/layout.html" %}
 {% load static %}
 {% block body %}
+{% if bidError %}
+<h1 style="color:red">Please notice that : </h1>
+<h3 style="color:rgb(245, 94, 131)">
+    The bid must be at least as large as the starting bid, and must be greater than any other bids that have been placed
+</h3>
+{% endif %}
   <h1>Listing : {{lis.title}}</h1>
   <ul>
       <li>Category :<br> {{lis.category}}</li>
@@ -25,8 +31,34 @@
       <li style="color:red"> Closed </li>
       {% endif %}
      </ul>
-     <div>
-       <!--  " -->
+     {% if lis.closed %}
+     <h1 style="color:red">Closed</h1>
+    {% else %}
+     <br>
+        <form action="{% url 'bid' %}" method="post" enctype='multipart/form-data'>
+            {% csrf_token %}
+            <input type="text" name="lis" value="{{lis.id}}" hidden="true">
+            <input type="number" name="amount" value="Enter a number to Bid!" onfocus="this.value=''">
+            <input type="submit" name="submit" value="Bid!" style="color:white; background-color: #04AA6D;">
+        </form>
+        {% if watched %}
+        <a href="removeFromWatchList/{{lis.id}}" style="color:red">
+            Remove from WatchList.
+           </a>
+    {% else %}
+    <a href="addToWatchList/{{lis.id}}" style="color:rgb(139, 2, 128)">
+        Add to WatchList.
+       </a>
+    {% endif %}
+    {% if owner %}
+    <a href="close/{{lis.id}}" style="color:red">
+        Close.
+       </a>
+    {% else %}
+    {% endif %}
+    {% endif %}
+
+     <div>       <!--  " -->
       <form action="{% url 'saveComment' %}" method="post" enctype='multipart/form-data'>
         {% csrf_token %}
           <label for="comment">Add a Comment :</label>
