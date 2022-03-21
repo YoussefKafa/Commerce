@@ -1,20 +1,20 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+    {% if user.is_authenticated %}  
     <a href="{% url 'newListing' %}" >create new listing</a>
     <h2>Active Listings</h2>
-    {% if user.is_authenticated %}  
-    <ul>
+    <ul align="center">
         {% for listing in listings %}
-        <li>title : {{listing.title}} <br> 
-            Description : {{listing.description}}<br>
-            Starting Bid : {{listing.startingBid}} <br>
-            Bid History : {{listing.bidHistory}} <br>
-            Highest Bid : {{listing.lastBid}} <br>
+        <li><b>title : </b>{{listing.title}} <br> 
+            <b>Description :</b> {{listing.description}}<br>
+                <b> Starting Bid :</b> {{listing.startingBid}} <br>
+                    <b>Bid History :</b> {{listing.bidHistory}} <br>
+                        <b>Highest Bid :</b> {{listing.lastBid}} <br>
             {% if listing.closed %}  
-            Winner : {{listing.winner}} <br>
+            <b>Winner :</b> {{listing.winner}} <br>
             {% endif %}   
-            Image :<br> 
+            <b> Image :</b><br> 
         {% if listing.image %}  
             <img src="{{listing.image.url}}" alt="Bid pic" width="250" height="250">
         {% else %}
@@ -33,7 +33,7 @@
         {% endfor %}
     </ul>
     {% else %}
-    <h1>Please login to see all the listings.</h1>
+    <h1>Please login to <span style="color:blue">Create</span> and <span style="color:green">View</span> all the listings.</h1>
     {% endif %}   
   
 {% endblock %}

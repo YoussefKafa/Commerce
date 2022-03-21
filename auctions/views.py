@@ -10,6 +10,7 @@ from datetime import datetime
 import datetime as dt
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
+from django.shortcuts import redirect
 def index(request, *args, **kwargs):
     if request.user.is_authenticated:
             listings = Listing.objects.all()
@@ -97,26 +98,35 @@ def submitted(request):
 
 
 def addToWatchList(request, listingId):
+    owner=False
+    lis=Listing.objects.get(pk=listingId)
+    if(lis.user == request.user):
+        owner=True
     #add the listing to user watchlist
     watchListRecord=WatchList()
     lis =Listing.objects.get(id=listingId)
     watchListRecord.listing=lis
     watchListRecord.user=request.user
     watchListRecord.save()
-    x=getListingMainPage(request,listingId)
-    return reverse(request, "auctions/listingMainPage.html", {"watched":x["watched"],"lis":x["lis"], "Cuser":x["Cuser"], "comments":x["comments"]})
-
+    return redirect('listingMainPage', listingId=listingId)
 
 def removeFromWatchList(request, listingId):
+    owner=False
+    lis=Listing.objects.get(pk=listingId)
+    if(lis.user == request.user):
+        owner=True
     lis =Listing.objects.get(id=listingId)
     #add the listing to user watchlist
     WatchList.objects.filter(listing=lis, user=request.user).delete()
-    x=getListingMainPage(request,listingId)
-    return render(request, "auctions/listingMainPage.html", {"watched":x["watched"],"lis":x["lis"], "Cuser":x["Cuser"], "comments":x["comments"]})
+    return redirect('listingMainPage', listingId=listingId)
 
 def bid(request):
     bidError=False
     listingId=int(request.POST.get('lis'))
+    owner=False
+    lis=Listing.objects.get(pk=listingId)
+    if(lis.user == request.user):
+        owner=True
     bid=Bid()
     bid.amount=request.POST.get('amount')
     bid.user=request.user
@@ -126,7 +136,7 @@ def bid(request):
     bid.date=datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
     if(int(bid.amount) <= listing.startingBid):
         bidError=True
-        return render(request, "auctions/listingMainPage.html", {"lis":listing,"bidError":bidError, "Cuser":request.user, "comments":listingComments})
+        return redirect('listingMainPage', listingId=listingId)
     #fetch last listing bids
     listingBids=Bid.objects.filter(listing=listing)
     bidHistory=[]
@@ -136,7 +146,7 @@ def bid(request):
         if( int(bid.amount) <= n):
             request.session['bidError']=True  
             bidError=True
-            return render(request, "auctions/listingMainPage.html", {"lis":listing,"bidError":bidError, "Cuser":request.user, "comments":listingComments})
+            return redirect('listingMainPage', listingId=listingId)
     bid.save()
     lis =Listing.objects.get(id=listingId)
     listingBids=Bid.objects.filter(listing=lis)
@@ -148,7 +158,7 @@ def bid(request):
       if(len(bidHistory) != 0):
           lis.lastBid=max(bidHistory)
     user=utils.get_user(lis.user_id)
-    return render(request, "auctions/listingMainPage.html", {"lis":lis, "Cuser":request.user, "comments":listingComments})
+    return redirect('listingMainPage', listingId=listingId)
 
 def closeListing(request, listingId):
     #close the listing 
@@ -162,9 +172,8 @@ def closeListing(request, listingId):
     winnerBid= maxBid.first()
     listing.winner=winnerBid.user
     listing.save()
-    x=getListingMainPage(request,listingId)
     lis=Listing.objects.get(pk=listingId)
-    return render(request, "auctions/listingMainPage.html", {"watched":x["watched"],"lis":x["lis"], "Cuser":x["Cuser"], "comments":x["comments"]})
+    return redirect('listingMainPage', listingId=listingId)
 
 def saveComment(request):
     listing= Listing.objects.get(pk=int(request.POST.get('listing')))
@@ -183,7 +192,7 @@ def saveComment(request):
       lis.bidHistory=bidHistory
       lis.lastBid=max(bidHistory)
     user=utils.get_user(lis.user_id)
-    return render(request, "auctions/listingMainPage.html", {"lis":lis, "Cuser":user, "comments":listingComments})
+    return redirect('listingMainPage', listingId=listing.id)
 
 
 def watchList(request):

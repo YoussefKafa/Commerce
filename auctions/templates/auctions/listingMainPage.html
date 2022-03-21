@@ -9,26 +9,26 @@
 {% endif %}
   <h1>Listing : {{lis.title}}</h1>
   <ul>
-      <li>Category :<br> {{lis.category}}</li>
-      <li>Description :<br> {{lis.description}}</li>
-      <li>starting Bid:<br> {{lis.startingBid}}</li>
-      <li>listedBy:<br> {{Cuser.username}}</li>
-      <li> Bid History :<br> {{lis.bidHistory}} <br></li>
-      <li> Highest Bid :<br> {{lis.lastBid}} <br></li>
+      <li><b>Category :</b><br> {{lis.category}}</li>
+      <li><b>Description :</b><br> {{lis.description}}</li>
+      <li><b>starting Bid:</b><br> {{lis.startingBid}}</li>
+      <li><b>listed By:</b><br> {{Cuser.username}}</li>
+      <li><b> Bid History :</b><br> {{lis.bidHistory}} <br></li>
+      <li> <b>Highest Bid :</b><br> {{lis.lastBid}} <br></li>
 
-      <li>image: <br>
+      <li><b>image:</b> <br>
         {% if lis.image %}
          <img src="{{lis.image.url}}" alt="Bid pic" width="250" height="250"></li>
          {% else %}
             no image
         {%endif %}
       {% if lis.closed %}
-      <li style="color:green">Winner: <br> {{ lis.winner}} </li>
+      <li style="color:green"><b>Winner: </b><br> {{ lis.winner}} </li>
       {% if lis.winner.id == Cuser.id %}
+      <hr>
       <h1 style="color:green">You are the winner!</h1>
       {% endif %}
-           <br>
-      <li style="color:red"> Closed </li>
+      <hr>
       {% endif %}
      </ul>
      {% if lis.closed %}
@@ -50,6 +50,7 @@
         Add to WatchList.
        </a>
     {% endif %}
+    <br>
     {% if owner %}
     <a href="close/{{lis.id}}" style="color:red">
         Close.
